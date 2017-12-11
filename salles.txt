@@ -1,0 +1,2 @@
+Salle 1 30
+Salle 2 20
