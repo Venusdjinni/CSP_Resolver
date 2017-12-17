@@ -74,23 +74,6 @@ public class MainClass {
         return b1 && b2 && b3 && csp.C(Xi, Vi) && csp.C(Xj, Vj);
     }
 
-    private static void print(HashMap<Integer, CSP.ValeurX> A) {
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 4; j++) {
-                boolean flag = false;
-                for (Map.Entry<Integer, CSP.ValeurX> e : A.entrySet()) {
-                    if (new Couple(i, j).equals(e.getValue().getPos())) {
-                        System.out.print(e.getKey() + "," + e.getValue().getSalle() + " | ");
-                        flag = true;
-                    }
-                }
-                if (!flag) System.out.print("0,0");
-                System.out.print("   ");
-            }
-            System.out.println();
-        }
-    }
-
     private static void readDatas(String srcCours, String srcSalles) throws FileNotFoundException {
         // lit les donnees des fichiers et les insere dans les listes COURS et SALLES
 
@@ -143,5 +126,81 @@ public class MainClass {
             }
         }
         return sb.toString();
+    }
+
+    private static void print(HashMap<Integer, CSP.ValeurX> A) {
+        // On commence par chercher le nom de cours le plus long
+        int maxCours = 0, maxSalles = 0;
+        for (Cours c : COURS.values())
+            if (c.getNom().length() > maxCours)
+                maxCours = c.getNom().length();
+        for (Salle s : SALLES.values())
+            if (s.getNom().length() > maxSalles)
+                maxSalles = s.getNom().length();
+        // On cherche maintenant combien de cours au maximum se font dans la meme salle
+        int maxMSalle = 0;
+        int[][] counts = new int[5][4];
+        for (CSP.ValeurX v : A.values())
+            counts[v.getPos().x][v.getPos().y]++;
+        for (int[] ii : counts)
+            for (int i : ii)
+                if (i > maxMSalle)
+                    maxMSalle = i;
+        // Et on construit le tableau
+        int maxLargeur = maxCours + maxSalles + 2;
+        for (int i = 0; i < 5 + maxLargeur * 4; i++) System.out.print("-"); System.out.println();
+        for (int i = 0; i < 5; i++) {
+            int maxLocal = 0;
+            for (int l = 0; l < 4; l++)
+                if (counts[i][l] > maxLocal)
+                    maxLocal = counts[i][l];
+            if (maxLocal == 0) {
+                for (int l = 0; l < 4; l++) {
+                    System.out.print("|");
+                    for (int k = 0; k < maxLargeur; k++) System.out.print(" ");
+                }
+                System.out.println("|");
+            } else while (maxLocal > 0) {
+                for (int j = 0; j < 4; j++) {
+                    System.out.print("|");
+                    int longeur = 0;
+                    for (Map.Entry<Integer, CSP.ValeurX> e : A.entrySet()) {
+                        if (new Couple(i, j).equals(e.getValue().getPos())) {
+                            String s = COURS.get(e.getKey()).getNom() + ", " + SALLES.get(e.getValue().getSalle()).getNom();
+                            A.remove(e.getKey());
+                            longeur = s.length();
+                            System.out.print(s);
+                            break;
+                        }
+                    }
+                    // on complete les espaces et les '|'
+                    if (longeur > 0) { // on a ecrit un cours
+                        for (int k = 0; k < maxLargeur - longeur; k++) System.out.print(" ");
+                    } else {
+                        for (int k = 0; k < maxLargeur; k++) System.out.print(" ");
+                    }
+                }
+                System.out.println("|");
+                maxLocal--;
+            }
+            for (int k = 0; k < 5 + maxLargeur * 4; k++) System.out.print("-"); System.out.println();
+        }
+
+
+
+        /*for (int i = 0; i < 5; i++) {
+            for (int j = 0; j < 4; j++) {
+                boolean flag = false;
+                for (Map.Entry<Integer, CSP.ValeurX> e : A.entrySet()) {
+                    if (new Couple(i, j).equals(e.getValue().getPos())) {
+                        System.out.print(e.getKey() + "," + e.getValue().getSalle() + " | ");
+                        flag = true;
+                    }
+                }
+                if (!flag) System.out.print("0,0");
+                System.out.print("   ");
+            }
+            System.out.println();
+        }*/
     }
 }
